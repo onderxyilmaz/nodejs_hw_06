@@ -14,4 +14,5 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: JWT_REFRESH_SECRET
-        sync: false 
+        sync: false
+    nodeVersion: 18.0.0 
