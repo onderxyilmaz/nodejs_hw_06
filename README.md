@@ -2,6 +2,12 @@
 
 This is a contact management application with user authentication and authorization features.
 
+## Repository and Deployment
+
+- GitHub Repository: [https://github.com/onderxyilmaz/nodejs_hw_05](https://github.com/onderxyilmaz/nodejs_hw_05)
+- Branch: `hw5-auth`
+- Live Demo: [https://nodejs-hw-05.onrender.com](https://nodejs-hw-05.onrender.com)
+
 ## Features
 
 - User registration and login
@@ -43,4 +49,4 @@ This is a contact management application with user authentication and authorizat
 
 ## Production
 
-The application is deployed on render.com. You can access it at: [Your Render.com URL]
+The application is deployed on render.com. You can access it at: [https://nodejs-hw-05.onrender.com](https://nodejs-hw-05.onrender.com)
