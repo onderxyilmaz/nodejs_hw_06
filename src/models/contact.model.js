@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const contactSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Name is required']
+    required: [true, 'Name is required'],
+    trim: true
   },
   email: {
     type: String,
@@ -13,7 +14,16 @@ const contactSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: [true, 'Phone is required']
+    required: [true, 'Phone is required'],
+    trim: true
+  },
+  photo: {
+    type: String,
+    default: null
+  },
+  photoPublicId: {
+    type: String,
+    default: null
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

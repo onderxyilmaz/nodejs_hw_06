@@ -1,5 +1,5 @@
 const createHttpError = require('create-http-error');
-const { registerUser, loginUser, refreshSession, logoutUser } = require('../services/auth.service');
+const { registerUser, loginUser, refreshSession, logoutUser, sendResetPasswordEmail, resetPassword } = require('../services/auth.service');
 
 const register = async (req, res, next) => {
   try {
@@ -110,9 +110,41 @@ const logout = async (req, res, next) => {
   }
 };
 
+const sendResetEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw createHttpError(400, 'Email is required');
+    }
+
+    const result = await sendResetPasswordEmail(email);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPwd = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      throw createHttpError(400, 'Token and password are required');
+    }
+
+    const result = await resetPassword(token, password);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   refresh,
-  logout
+  logout,
+  sendResetEmail,
+  resetPwd
 }; 

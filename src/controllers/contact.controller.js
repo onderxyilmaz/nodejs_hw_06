@@ -1,11 +1,51 @@
-const createHttpError = require('create-http-error');
-const Contact = require('../models/contact.model');
+const createHttpError = require('http-errors');
+const { createContact, updateContact, getContacts, getContactById, deleteContact } = require('../services/contact.service');
 
-const getContacts = async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
-    const contacts = await Contact.find({ userId: req.user._id });
-    res.json({
+    const { name, email, phone } = req.body;
+    const userId = req.user.userId;
+    const photo = req.file;
+
+    const contact = await createContact({ name, email, phone }, userId, photo);
+
+    res.status(201).json({
       status: 'success',
+      message: 'Contact created successfully',
+      data: { contact }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const userId = req.user.userId;
+    const updateData = req.body;
+    const photo = req.file;
+
+    const contact = await updateContact(contactId, userId, updateData, photo);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Contact updated successfully',
+      data: { contact }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAll = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const contacts = await getContacts(userId);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Contacts retrieved successfully',
       data: { contacts }
     });
   } catch (error) {
@@ -13,19 +53,16 @@ const getContacts = async (req, res, next) => {
   }
 };
 
-const getContactById = async (req, res, next) => {
+const getById = async (req, res, next) => {
   try {
-    const contact = await Contact.findOne({
-      _id: req.params.id,
-      userId: req.user._id
-    });
+    const { contactId } = req.params;
+    const userId = req.user.userId;
 
-    if (!contact) {
-      throw createHttpError(404, 'Contact not found');
-    }
+    const contact = await getContactById(contactId, userId);
 
-    res.json({
+    res.status(200).json({
       status: 'success',
+      message: 'Contact retrieved successfully',
       data: { contact }
     });
   } catch (error) {
@@ -33,66 +70,12 @@ const getContactById = async (req, res, next) => {
   }
 };
 
-const createContact = async (req, res, next) => {
+const remove = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
+    const { contactId } = req.params;
+    const userId = req.user.userId;
 
-    // Validate required fields
-    if (!name || !email || !phone) {
-      throw createHttpError(400, 'Missing required fields');
-    }
-
-    const contact = new Contact({
-      name,
-      email,
-      phone,
-      userId: req.user._id
-    });
-
-    await contact.save();
-
-    res.status(201).json({
-      status: 'success',
-      data: { contact }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateContact = async (req, res, next) => {
-  try {
-    const { name, email, phone } = req.body;
-
-    const contact = await Contact.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      { name, email, phone },
-      { new: true, runValidators: true }
-    );
-
-    if (!contact) {
-      throw createHttpError(404, 'Contact not found');
-    }
-
-    res.json({
-      status: 'success',
-      data: { contact }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteContact = async (req, res, next) => {
-  try {
-    const contact = await Contact.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.user._id
-    });
-
-    if (!contact) {
-      throw createHttpError(404, 'Contact not found');
-    }
+    await deleteContact(contactId, userId);
 
     res.status(204).send();
   } catch (error) {
@@ -101,9 +84,9 @@ const deleteContact = async (req, res, next) => {
 };
 
 module.exports = {
-  getContacts,
-  getContactById,
-  createContact,
-  updateContact,
-  deleteContact
+  create,
+  update,
+  getAll,
+  getById,
+  remove
 }; 

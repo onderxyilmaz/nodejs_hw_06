@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const Session = require('../models/session.model');
 const jwt = require('jsonwebtoken');
 const createHttpError = require('create-http-error');
+const emailService = require('./email.service');
 
 const registerUser = async (userData) => {
   const user = new User(userData);
@@ -141,9 +142,60 @@ const logoutUser = async (refreshToken) => {
   }
 };
 
+const sendResetPasswordEmail = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw createHttpError(404, 'User not found!');
+  }
+
+  const resetToken = jwt.sign(
+    { email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '5m' }
+  );
+
+  await emailService.sendResetPasswordEmail(email, resetToken);
+
+  return {
+    status: 200,
+    message: 'Reset password email has been successfully sent.',
+    data: {}
+  };
+};
+
+const resetPassword = async (token, newPassword) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ email: decoded.email });
+
+    if (!user) {
+      throw createHttpError(404, 'User not found!');
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    // Delete all sessions for this user
+    await Session.deleteMany({ userId: user._id });
+
+    return {
+      status: 200,
+      message: 'Password has been successfully reset.',
+      data: {}
+    };
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      throw createHttpError(401, 'Token is expired or invalid.');
+    }
+    throw error;
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   refreshSession,
-  logoutUser
+  logoutUser,
+  sendResetPasswordEmail,
+  resetPassword
 }; 
